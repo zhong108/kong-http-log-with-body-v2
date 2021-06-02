@@ -12,13 +12,10 @@ local ngx_encode_base64 = ngx.encode_base64
 local table_concat = table.concat
 local fmt = string.format
 
-
 local HttpLogHandler = {}
-
 
 HttpLogHandler.PRIORITY = 12
 HttpLogHandler.VERSION = "0.1.1"
-
 
 local queues = {} -- one queue per unique plugin config
 
@@ -30,27 +27,27 @@ local parsed_urls_cache = {}
 -- @return `parsed_url` a table with host details:
 -- scheme, host, port, path, query, userinfo
 local function parse_url(host_url)
-  local parsed_url = parsed_urls_cache[host_url]
+    local parsed_url = parsed_urls_cache[host_url]
 
-  if parsed_url then
-    return parsed_url
-  end
-
-  parsed_url = url.parse(host_url)
-  if not parsed_url.port then
-    if parsed_url.scheme == "http" then
-      parsed_url.port = 80
-    elseif parsed_url.scheme == "https" then
-      parsed_url.port = 443
+    if parsed_url then
+        return parsed_url
     end
-  end
-  if not parsed_url.path then
-    parsed_url.path = "/"
-  end
 
-  parsed_urls_cache[host_url] = parsed_url
+    parsed_url = url.parse(host_url)
+    if not parsed_url.port then
+        if parsed_url.scheme == "http" then
+            parsed_url.port = 80
+        elseif parsed_url.scheme == "https" then
+            parsed_url.port = 443
+        end
+    end
+    if not parsed_url.path then
+        parsed_url.path = "/"
+    end
 
-  return parsed_url
+    parsed_urls_cache[host_url] = parsed_url
+
+    return parsed_url
 end
 
 
@@ -58,154 +55,159 @@ end
 -- @return true if everything was sent correctly, falsy if error
 -- @return error message if there was an error
 local function send_payload(self, conf, payload)
-  local method = conf.method
-  local timeout = conf.timeout
-  local keepalive = conf.keepalive
-  local content_type = conf.content_type
-  local http_endpoint = conf.http_endpoint
+    local method = conf.method
+    local timeout = conf.timeout
+    local keepalive = conf.keepalive
+    local content_type = conf.content_type
+    local http_endpoint = conf.http_endpoint
 
-  local ok, err
-  local parsed_url = parse_url(http_endpoint)
-  local host = parsed_url.host
-  local port = tonumber(parsed_url.port)
+    local ok, err
+    local parsed_url = parse_url(http_endpoint)
+    local host = parsed_url.host
+    local port = tonumber(parsed_url.port)
 
-  local httpc = http.new()
-  httpc:set_timeout(timeout)
-  ok, err = httpc:connect(host, port)
-  if not ok then
-    return nil, "failed to connect to " .. host .. ":" .. tostring(port) .. ": " .. err
-  end
-
-  if parsed_url.scheme == "https" then
-    local _, err = httpc:ssl_handshake(true, host, false)
-    if err then
-      return nil, "failed to do SSL handshake with " ..
-                  host .. ":" .. tostring(port) .. ": " .. err
+    local httpc = http.new()
+    httpc:set_timeout(timeout)
+    ok, err = httpc:connect(host, port)
+    if not ok then
+        return nil, "failed to connect to " .. host .. ":" .. tostring(port) .. ": " .. err
     end
-  end
 
-  local res, err = httpc:request({
-    method = method,
-    path = parsed_url.path,
-    query = parsed_url.query,
-    headers = {
-      ["Host"] = parsed_url.host,
-      ["Content-Type"] = content_type,
-      ["Content-Length"] = #payload,
-      ["Authorization"] = parsed_url.userinfo and (
-        "Basic " .. ngx_encode_base64(parsed_url.userinfo)
-      ),
-    },
-    body = payload,
-  })
-  if not res then
-    return nil, "failed request to " .. host .. ":" .. tostring(port) .. ": " .. err
-  end
+    if parsed_url.scheme == "https" then
+        local _, err = httpc:ssl_handshake(true, host, false)
+        if err then
+            return nil, "failed to do SSL handshake with " ..
+                    host .. ":" .. tostring(port) .. ": " .. err
+        end
+    end
 
-  -- always read response body, even if we discard it without using it on success
-  local response_body = res:read_body()
-  local success = res.status < 400
-  local err_msg
+    local res, err = httpc:request({
+        method = method,
+        path = parsed_url.path,
+        query = parsed_url.query,
+        headers = {
+            ["Host"] = parsed_url.host,
+            ["Content-Type"] = content_type,
+            ["Content-Length"] = #payload,
+            ["Authorization"] = parsed_url.userinfo and (
+                    "Basic " .. ngx_encode_base64(parsed_url.userinfo)
+            ),
+        },
+        body = payload,
+    })
+    if not res then
+        return nil, "failed request to " .. host .. ":" .. tostring(port) .. ": " .. err
+    end
 
-  if not success then
-    err_msg = "request to " .. host .. ":" .. tostring(port) ..
-              " returned status code " .. tostring(res.status) .. " and body " ..
-              response_body
-  end
+    -- always read response body, even if we discard it without using it on success
+    local response_body = res:read_body()
+    local success = res.status < 400
+    local err_msg
 
-  ok, err = httpc:set_keepalive(keepalive)
-  if not ok then
-    -- the batch might already be processed at this point, so not being able to set the keepalive
-    -- will not return false (the batch might not need to be reprocessed)
-    kong.log.err("failed keepalive for ", host, ":", tostring(port), ": ", err)
-  end
+    if not success then
+        err_msg = "request to " .. host .. ":" .. tostring(port) ..
+                " returned status code " .. tostring(res.status) .. " and body " ..
+                response_body
+    end
 
-  return success, err_msg
+    ok, err = httpc:set_keepalive(keepalive)
+    if not ok then
+        -- the batch might already be processed at this point, so not being able to set the keepalive
+        -- will not return false (the batch might not need to be reprocessed)
+        kong.log.err("failed keepalive for ", host, ":", tostring(port), ": ", err)
+    end
+
+    return success, err_msg
 end
-
 
 local function json_array_concat(entries)
-  return "[" .. table_concat(entries, ",") .. "]"
+    return "[" .. table_concat(entries, ",") .. "]"
 end
-
 
 local function get_queue_id(conf)
-  return fmt("%s:%s:%s:%s:%s:%s",
-             conf.http_endpoint,
-             conf.method,
-             conf.content_type,
-             conf.timeout,
-             conf.keepalive,
-             conf.retry_count,
-             conf.queue_size,
-             conf.flush_timeout)
+    return fmt("%s:%s:%s:%s:%s:%s",
+            conf.http_endpoint,
+            conf.method,
+            conf.content_type,
+            conf.timeout,
+            conf.keepalive,
+            conf.retry_count,
+            conf.queue_size,
+            conf.flush_timeout)
 end
-
 
 local function parse_body(type, data)
-  if type and data and is_json_body(type) then
-    return cjson_decode(data)
-  end
+    if type and data and is_json_body(type) then
+        return cjson_decode(data)
+    end
 end
-
 
 function HttpLogHandler:access(conf)
-  if is_json_body(kong.request.get_header("Content-Type")) then
-    local ctx = kong.ctx.plugin;
-    ctx.request_body = kong.request.get_raw_body();
-  end
+    if is_json_body(kong.request.get_header("Content-Type")) then
+        local ctx = kong.ctx.plugin;
+        ctx.request_body = kong.request.get_raw_body();
+    end
 end
-
 
 function HttpLogHandler:body_filter(conf)
-  if is_json_body(kong.response.get_header("Content-Type")) then
-    local ctx = kong.ctx.plugin;
-    local chunk, eof = ngx.arg[1], ngx.arg[2];
-    if not eof then
-      ctx.response_body = (ctx.response_body or "") .. (chunk or "")
+    if is_json_body(kong.response.get_header("Content-Type")) then
+        local ctx = kong.ctx.plugin;
+        local chunk, eof = ngx.arg[1], ngx.arg[2];
+        if not eof then
+            ctx.response_body = (ctx.response_body or "") .. (chunk or "")
+        end
     end
-  end
 end
 
-
 function HttpLogHandler:log(conf)
-  local ctx = kong.ctx.plugin;
-  local log_obj = basic_serializer.serialize(ngx)
+    local ctx = kong.ctx.plugin;
+    local log_obj = basic_serializer.serialize(ngx)
 
-  log_obj.request.body = parse_body(kong.request.get_header("Content-Type"), ctx.request_body)
-  log_obj.response.body = parse_body(kong.response.get_header("Content-Type"), ctx.response_body)
-
-  local entry = cjson_encode(log_obj)
-
-  local queue_id = get_queue_id(conf)
-  local q = queues[queue_id]
-  if not q then
-    -- batch_max_size <==> conf.queue_size
-    local batch_max_size = conf.queue_size or 1
-    local process = function(entries)
-      local payload = batch_max_size == 1
-                      and entries[1]
-                      or  json_array_concat(entries)
-      return send_payload(self, conf, payload)
+    -- body may be empty
+    local request_status, req_body = pcall(parse_body, kong.request.get_header("Content-Type"), ctx.request_body)
+    local response_status, res_body = pcall(parse_body, kong.response.get_header("Content-Type"), ctx.response_body)
+    if request_status then
+        log_obj.request.body = req_body
+    else
+        log_obj.request.body = ''
+    end
+    if response_status then
+        log_obj.response.body = res_body
+    else
+        log_obj.response.body = ''
     end
 
-    local opts = {
-      retry_count    = conf.retry_count,
-      flush_timeout  = conf.flush_timeout,
-      batch_max_size = batch_max_size,
-      process_delay  = 0,
-    }
+    local entry = cjson_encode(log_obj)
 
-    local err
-    q, err = BatchQueue.new(process, opts)
+    local queue_id = get_queue_id(conf)
+    local q = queues[queue_id]
     if not q then
-      kong.log.err("could not create queue: ", err)
-      return
-    end
-    queues[queue_id] = q
-  end
+        -- batch_max_size <==> conf.queue_size
+        local batch_max_size = conf.queue_size or 1
+        local process = function(entries)
+            local payload = batch_max_size == 1
+                    and entries[1]
+                    or json_array_concat(entries)
+            return send_payload(self, conf, payload)
+        end
 
-  q:add(entry)
+        local opts = {
+            retry_count = conf.retry_count,
+            flush_timeout = conf.flush_timeout,
+            batch_max_size = batch_max_size,
+            process_delay = 0,
+        }
+
+        local err
+        q, err = BatchQueue.new(process, opts)
+        if not q then
+            kong.log.err("could not create queue: ", err)
+            return
+        end
+        queues[queue_id] = q
+    end
+
+    q:add(entry)
 end
 
 return HttpLogHandler
