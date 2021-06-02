@@ -1,5 +1,5 @@
-package = "kong-plugin-http-log-with-body"
-version = "0.0.1"
+package = "kong-http-log-with-body-v2"
+version = "0.0.1-1"
 source = {
   url = "git://github.com/G2HJei/kong-http-log-with-body-v2",
   branch = "master"
@@ -10,7 +10,7 @@ description = {
 build = {
   type = "builtin",
   modules = {
-    ["kong.plugins.http-log-with-body-v2.handler"] = "kong/plugins/http-log-with-body-v2/handler.lua",
-    ["kong.plugins.http-log-with-body-v2.schema"]  = "kong/plugins/http-log-with-body-v2/schema.lua",
+    ["kong.plugins.kong-http-log-with-body-v2.handler"] = "kong/plugins/kong-http-log-with-body-v2/handler.lua",
+    ["kong.plugins.kong-http-log-with-body-v2.schema"]  = "kong/plugins/kong-http-log-with-body-v2/schema.lua",
   }
 }
