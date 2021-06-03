@@ -173,12 +173,12 @@ function HttpLogHandler:log(conf)
     if request_status then
         log_obj.request.body = req_body
     else
-        log_obj.request.body = '{}'
+        log_obj.request.body = {}
     end
     if response_status then
         log_obj.response.body = res_body
     else
-        log_obj.response.body = '{}'
+        log_obj.response.body = {}
     end
 
     kong.log.info("checkpoint reached")
