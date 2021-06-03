@@ -166,20 +166,22 @@ function HttpLogHandler:log(conf)
     -- body may be empty
     local request_status, req_body = pcall(parse_body, kong.request.get_header("Content-Type"), ctx.request_body)
     local response_status, res_body = pcall(parse_body, kong.response.get_header("Content-Type"), ctx.response_body)
-    kong.log("request_status: ", request_status)
-    kong.log("req_body: ", req_body)
-    kong.log("request_status: ", request_status)
-    kong.log("res_body:", res_body)
+    kong.log.info("request_status: ", request_status)
+    --kong.log.info("req_body: ", req_body)
+    kong.log.info("request_status: ", request_status)
+    --kong.log.info("res_body:", res_body)
     if request_status then
         log_obj.request.body = req_body
-    --else
-    --    log_obj.request.body = '{}'
+    else
+        log_obj.request.body = '{}'
     end
     if response_status then
         log_obj.response.body = res_body
-    --else
-    --    log_obj.response.body = '{}'
+    else
+        log_obj.response.body = '{}'
     end
+
+    kong.log.info("checkpoint reached")
 
     local entry = cjson_encode(log_obj)
 
