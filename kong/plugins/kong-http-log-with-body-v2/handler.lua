@@ -139,6 +139,8 @@ end
 local function parse_body(type, data)
     if type and data and is_json_body(type) then
         return cjson_decode(data)
+    else
+        return data
     end
 end
 
@@ -181,7 +183,7 @@ function HttpLogHandler:log(conf)
         log_obj.response.body = {}
     end
 
-    kong.log.info("checkpoint reached")
+    kong.log("checkpoint reached")
 
     local entry = cjson_encode(log_obj)
 
