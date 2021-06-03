@@ -140,6 +140,7 @@ local function parse_body(type, data)
     if type and data and is_json_body(type) then
         return cjson_decode(data)
     else
+        kong.log("strange data found: ", data)
         return data
     end
 end
