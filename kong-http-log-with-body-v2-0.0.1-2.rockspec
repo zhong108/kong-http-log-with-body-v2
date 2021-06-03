@@ -1,5 +1,5 @@
 package = "kong-http-log-with-body-v2"
-version = "0.0.1-1"
+version = "0.0.1-2"
 source = {
   url = "git://github.com/G2HJei/kong-http-log-with-body-v2",
   branch = "master"
