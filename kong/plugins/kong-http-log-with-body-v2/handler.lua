@@ -149,6 +149,7 @@ function HttpLogHandler:access(conf)
     if is_json_body(kong.request.get_header("Content-Type")) then
         local ctx = kong.ctx.plugin;
         ctx.request_body = kong.request.get_raw_body();
+        kong.log("raw body: ", kong.req_body.get_raw_body);
     end
 end
 
