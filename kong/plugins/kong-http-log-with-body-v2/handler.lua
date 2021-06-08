@@ -163,6 +163,7 @@ function HttpLogHandler:body_filter(conf)
 end
 
 function HttpLogHandler:log(conf)
+    kong.log("kong.ctx.plugin", kong.ctx.plugin)
     local ctx = kong.ctx.plugin;
     local log_obj = basic_serializer.serialize(ngx)
 
