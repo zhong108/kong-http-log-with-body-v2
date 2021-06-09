@@ -140,7 +140,11 @@ local function parse_body(type, data)
     if type and data and is_json_body(type) then
         return cjson_decode(data)
     else
-        return cjson_decode('{"RawData":"' .. cjson_encode(data) .. '"}')
+        local json_text = '["RawData": "' .. chunk .. '"]'
+        local json_encoded = { RawData = chunk }
+        kong.log("json_text: ", json_text)
+        kong.log("json_encoded: ", json_encoded)
+        return cjson_decode(json_text)
     end
 end
 
