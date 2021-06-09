@@ -140,7 +140,7 @@ local function parse_body(type, data)
     if type and data and is_json_body(type) then
         return cjson_decode(data)
     else
-        return '{"RawData":"' .. data .. '"}'
+        return cjson_decode('{"RawData":"' .. data .. '"}')
     end
 end
 
@@ -158,7 +158,7 @@ function HttpLogHandler:body_filter(conf)
         end
     else
         if not eof then
-            ctx.response_body = '{"RawData":"' .. chunk .. '"}'
+            ctx.response_body = cjson_decode('{"RawData":"' .. chunk .. '"}')
         end
     end
 end
