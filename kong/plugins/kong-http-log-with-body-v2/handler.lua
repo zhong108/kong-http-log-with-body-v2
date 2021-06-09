@@ -158,7 +158,9 @@ function HttpLogHandler:body_filter(conf)
         end
     else
         if not eof then
-            ctx.response_body = cjson_encode('{"RawData":"' .. cjson_encode(chunk) .. '"}')
+            local json_text = '["RawData": "' .. chunk .. '"]'
+            kong.log("json_text: ", json_text)
+            ctx.response_body = cjson_decode(json_text)
         end
     end
 end
