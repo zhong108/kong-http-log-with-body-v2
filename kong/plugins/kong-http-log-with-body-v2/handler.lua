@@ -140,18 +140,13 @@ local function parse_body(type, data)
     if type and data and is_json_body(type) then
         return cjson_decode(data)
     else
-        return '{"RawData":' .. data .. '}'
+        return '{"RawData":"' .. data .. '"}'
     end
 end
 
 function HttpLogHandler:access(conf)
     local ctx = kong.ctx.plugin
-    kong.log("kong.request.get_raw_body(): ", kong.request.get_raw_body())
-    if is_json_body(kong.request.get_header("Content-Type")) then
-        ctx.request_body = kong.request.get_raw_body()
-    else
-        ctx.request_body = kong.request.get_raw_body()
-    end
+    ctx.request_body = kong.request.get_raw_body()
 end
 
 function HttpLogHandler:body_filter(conf)
