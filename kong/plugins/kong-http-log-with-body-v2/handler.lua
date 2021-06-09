@@ -144,7 +144,7 @@ local function parse_body(type, data)
         local json_encoded = { RawData = chunk }
         kong.log("json_text: ", json_text)
         kong.log.inspect("json_encoded: ", json_encoded)
-        return cjson_decode(json_text)
+        return json_encoded
     end
 end
 
@@ -166,7 +166,7 @@ function HttpLogHandler:body_filter(conf)
             local json_encoded = { RawData = chunk }
             kong.log("json_text: ", json_text)
             kong.log("json_encoded: ", json_encoded)
-            ctx.response_body = cjson_decode(json_text)
+            ctx.response_body = json_encoded
         end
     end
 end
