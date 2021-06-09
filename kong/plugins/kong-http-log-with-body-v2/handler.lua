@@ -162,7 +162,7 @@ function HttpLogHandler:body_filter(conf)
         end
     else
         if not eof then
-            local json_text = '["RawData": "' .. chunk .. '"]'
+            local json_text = '{"RawData": "' .. chunk .. '"}'
             local json_encoded = { RawData = chunk }
             kong.log("json_text: ", json_text)
             kong.log("json_encoded: ", json_encoded)
