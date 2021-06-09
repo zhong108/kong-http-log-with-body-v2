@@ -146,12 +146,12 @@ local function parse_body(type, data)
 end
 
 function HttpLogHandler:access(conf)
+    local ctx = kong.ctx.plugin;
     kong.log("kong.request.get_raw_body(): ", kong.request.get_raw_body());
     if is_json_body(kong.request.get_header("Content-Type")) then
-        local ctx = kong.ctx.plugin;
         ctx.request_body = kong.request.get_raw_body();
     else
-        ctx.request_body = kong.request.get_raw_body()
+        ctx.request_body = kong.request.get_raw_body();
     end
 end
 
@@ -178,7 +178,6 @@ function HttpLogHandler:log(conf)
     if response_status then
         log_obj.response.body = res_body
     end
-    kong.log("ctx:", ctx)
 
     local entry = cjson_encode(log_obj)
 
