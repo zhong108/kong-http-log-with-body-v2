@@ -158,7 +158,7 @@ function HttpLogHandler:body_filter(conf)
         end
     else
         if not eof then
-            ctx.response_body = '{"RawData":' .. chunk .. '}'
+            ctx.response_body = '{"RawData":"' .. chunk .. '"}'
         end
     end
 end
