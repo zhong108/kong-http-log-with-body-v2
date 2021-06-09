@@ -140,27 +140,30 @@ local function parse_body(type, data)
     if type and data and is_json_body(type) then
         return cjson_decode(data)
     else
-        kong.log("strange data found: ", data)
-        return data
+        return '{"RawData":' .. data .. '}'
     end
 end
 
 function HttpLogHandler:access(conf)
-    local ctx = kong.ctx.plugin;
-    kong.log("kong.request.get_raw_body(): ", kong.request.get_raw_body());
+    local ctx = kong.ctx.plugin
+    kong.log("kong.request.get_raw_body(): ", kong.request.get_raw_body())
     if is_json_body(kong.request.get_header("Content-Type")) then
-        ctx.request_body = kong.request.get_raw_body();
+        ctx.request_body = kong.request.get_raw_body()
     else
-        ctx.request_body = kong.request.get_raw_body();
+        ctx.request_body = kong.request.get_raw_body()
     end
 end
 
 function HttpLogHandler:body_filter(conf)
+    local ctx = kong.ctx.plugin;
+    local chunk, eof = ngx.arg[1], ngx.arg[2];
     if is_json_body(kong.response.get_header("Content-Type")) then
-        local ctx = kong.ctx.plugin;
-        local chunk, eof = ngx.arg[1], ngx.arg[2];
         if not eof then
             ctx.response_body = (ctx.response_body or "") .. (chunk or "")
+        end
+    else
+        if not eof then
+            ctx.response_body = '{"RawData":' .. chunk .. '}'
         end
     end
 end
