@@ -140,7 +140,7 @@ local function parse_body(type, data)
     if type and data and is_json_body(type) then
         return cjson_decode(data)
     else
-        local json_text = string.format("%q",'{"RawData": "' .. data .. '"}')
+        local json_text = '{"RawData": "' .. string.format("%q", data) .. '"}'
         local json_encoded = { RawData = data }
         kong.log("json_text: ", json_text)
         kong.log.inspect("json_encoded: ", json_encoded)
@@ -156,19 +156,19 @@ end
 function HttpLogHandler:body_filter(conf)
     local ctx = kong.ctx.plugin;
     local chunk, eof = ngx.arg[1], ngx.arg[2];
-    if is_json_body(kong.response.get_header("Content-Type")) then
-        if not eof then
-            ctx.response_body = (ctx.response_body or "") .. (chunk or "")
-        end
-    else
-        if not eof then
-            local json_text = string.format("%q", '{"RawData": "' .. chunk .. '"}')
-            local json_encoded = { RawData = chunk }
-            kong.log("json_text: ", json_text)
-            kong.log("json_encoded: ", json_encoded)
-            ctx.response_body = (ctx.response_body or "") .. (json_text or "")
-        end
+    --    if is_json_body(kong.response.get_header("Content-Type")) then
+    if not eof then
+        ctx.response_body = (ctx.response_body or "") .. (chunk or "")
     end
+    --[[    else
+            if not eof then
+                local json_text = '{"RawData": "' .. string.format("%q", chunk) .. '"}'
+                local json_encoded = { RawData = chunk }
+                kong.log("json_text: ", json_text)
+                kong.log("json_encoded: ", json_encoded)
+                ctx.response_body = (ctx.response_body or "") .. (json_text or "")
+            end
+        end]]
 end
 
 function HttpLogHandler:log(conf)
