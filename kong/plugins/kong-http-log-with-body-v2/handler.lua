@@ -140,11 +140,11 @@ local function parse_body(type, data)
     if type and data and is_json_body(type) then
         return cjson_decode(data)
     else
-        local json_text = '{"RawData": "' .. data .. '"}'
+        local json_text = string.format("%q",'{"RawData": "' .. data .. '"}')
         local json_encoded = { RawData = data }
         kong.log("json_text: ", json_text)
         kong.log.inspect("json_encoded: ", json_encoded)
-        return json_encoded
+        return json_text
     end
 end
 
@@ -162,11 +162,11 @@ function HttpLogHandler:body_filter(conf)
         end
     else
         if not eof then
-            local json_text = '{"RawData": "' .. chunk .. '"}'
+            local json_text = string.format("%q", '{"RawData": "' .. chunk .. '"}')
             local json_encoded = { RawData = chunk }
             kong.log("json_text: ", json_text)
             kong.log("json_encoded: ", json_encoded)
-            ctx.response_body = (ctx.response_body or "") .. (json_encoded or "")
+            ctx.response_body = (ctx.response_body or "") .. (json_text or "")
         end
     end
 end
