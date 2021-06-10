@@ -155,19 +155,9 @@ end
 function HttpLogHandler:body_filter(conf)
     local ctx = kong.ctx.plugin;
     local chunk, eof = ngx.arg[1], ngx.arg[2];
-    --    if is_json_body(kong.response.get_header("Content-Type")) then
     if not eof then
         ctx.response_body = (ctx.response_body or "") .. (chunk or "")
     end
-    --[[    else
-            if not eof then
-                local json_text = '{"RawData": "' .. string.format("%q", chunk) .. '"}'
-                local json_encoded = { RawData = chunk }
-                kong.log("json_text: ", json_text)
-                kong.log("json_encoded: ", json_encoded)
-                ctx.response_body = (ctx.response_body or "") .. (json_text or "")
-            end
-        end]]
 end
 
 function HttpLogHandler:log(conf)
