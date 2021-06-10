@@ -137,11 +137,13 @@ local function get_queue_id(conf)
 end
 
 local function parse_body(type, data)
-    if type and data and is_json_body(type) then
-        return cjson_decode(data)
-    else
-        local json_encoded = string.format("%q", data)
-        return json_encoded
+    if data then
+        if type and is_json_body(type) then
+            return cjson_decode(data)
+        else
+           -- local json_encoded = string.format("%q", data)
+            return data
+        end
     end
 end
 
