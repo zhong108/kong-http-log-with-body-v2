@@ -141,10 +141,10 @@ local function parse_body(type, data)
         return cjson_decode(data)
     else
         local json_text = '{"RawData": "' .. string.format("%q", data) .. '"}'
-        local json_encoded = { RawData = data }
+        local json_encoded = { RawData = string.format("%q", data) }
         kong.log("json_text: ", json_text)
         kong.log.inspect("json_encoded: ", json_encoded)
-        return json_text
+        return json_encoded
     end
 end
 
