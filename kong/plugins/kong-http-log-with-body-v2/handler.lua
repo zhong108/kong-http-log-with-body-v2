@@ -142,7 +142,7 @@ local function parse_body(type, data)
             return cjson_decode(data)
         else
             -- local json_encoded = string.format("%q", data)
-            return { data }
+            return { raw_body = data }
         end
     end
 end
