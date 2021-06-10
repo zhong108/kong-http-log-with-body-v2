@@ -141,8 +141,8 @@ local function parse_body(type, data)
         if type and is_json_body(type) then
             return cjson_decode(data)
         else
-           -- local json_encoded = string.format("%q", data)
-            return data
+            -- local json_encoded = string.format("%q", data)
+            return { data }
         end
     end
 end
