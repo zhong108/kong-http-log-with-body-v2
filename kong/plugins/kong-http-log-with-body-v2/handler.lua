@@ -167,6 +167,13 @@ function HttpLogHandler:log(conf)
     -- body may be empty
     local request_status, req_body = pcall(parse_body, kong.request.get_header("Content-Type"), ctx.request_body)
     local response_status, res_body = pcall(parse_body, kong.response.get_header("Content-Type"), ctx.response_body)
+
+    --debug
+    local path = kong.request.get_path_with_query()
+    kong.log("captured request to: ", path)
+    kong.log("request_status:", request_status)
+    kong.log("response_status:", response_status)
+
     if request_status then
         log_obj.request.body = req_body
     end
